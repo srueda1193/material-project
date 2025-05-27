@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../../firebase/firebase";
 import type { AppUser } from "../interfaces/AppUser";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -34,4 +34,18 @@ export const loginUser = async(email: string, password: string) => {
 
     return null;
 
+}
+
+export const logoutUser = async() : Promise<void> =>{
+  await signOut(auth);
+}
+
+export const getCurrentUserData = async (uid: string) : Promise<AppUser | null > => {
+
+  const userDoc = await getDoc(doc(db, 'users', uid));
+  
+  if(userDoc.exists()){
+    return userDoc.data() as AppUser;
+  }
+  return null;
 }
