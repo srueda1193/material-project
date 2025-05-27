@@ -1,23 +1,35 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import type { AppUser } from "../interfaces/AppUser";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
-import { getCurrentUserData, loginUser, logoutUser, registerUser } from "../services/AuthServices";
+import { getCurrentUserData, loginUser, loginWithGoogle, logoutUser, registerUser } from "../services/AuthServices";
 
 interface AuthContextProps {
   user: AppUser | null;
   loading: boolean;
-  login: any;
-  registro: any;
-  logout: any;
+  login: (email: string, password: string) => Promise<AppUser | null>;
+  registro: (email: string, password: string, firstName: string, lastName: string) => Promise<AppUser>;
+  logout: () => Promise<void>;
+  loginWithGoogleContext: ()=> Promise<AppUser>
 }
 
 export const AuthContext = createContext<AuthContextProps>({
   user: null,
   loading: true,
-  login: null,
-  registro: null,
-  logout: null,
+  login: async() => null,
+  registro: async()=> {
+    throw new Error('Funcion no implementada')
+  },
+  logout: async() => {},
+  loginWithGoogleContext: async () => {
+    console.warn('loginWithGoogle fuera del provider');
+    return {
+      uid: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+    };
+  },
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -63,6 +75,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(null);
     };
 
+    const loginWithGoogleContext = async() =>{
+        const userData = await loginWithGoogle();
+        setUser(userData);
+        return userData;
+    }
+
 
   return (
     <AuthContext.Provider
@@ -72,9 +90,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         registro,
         logout,
+        loginWithGoogleContext
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
+
+export const useAuthContext = () => useContext(AuthContext);

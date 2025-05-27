@@ -5,6 +5,7 @@ import { Google } from "@mui/icons-material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { registerUser } from "../services/AuthServices";
+import { useAuthContext } from "../context/AuthContext";
 
 
 type RegisterFormData = {
@@ -27,6 +28,8 @@ export const RegisterPage = () => {
 
   const navigate = useNavigate();
 
+  const {registro, loginWithGoogleContext} = useAuthContext();
+
   const onSubmit = async (data: RegisterFormData) => {
     if (data.password !== data.confirmPassword) {
       alert("Las contraseñas no coinciden");
@@ -34,7 +37,7 @@ export const RegisterPage = () => {
     }
 
     try {
-      const user = await registerUser(
+      const user = await registro(
         data.email,
         data.password,
         data.firstName,
@@ -44,6 +47,16 @@ export const RegisterPage = () => {
       navigate('/auth/login');
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const user = await loginWithGoogleContext();
+      if(user) navigate('/', {replace: true})
+    } catch (error) {
+      console.log("Error con login de google: ", error);
+
     }
   };
   
@@ -127,7 +140,12 @@ export const RegisterPage = () => {
           </Grid>
 
           <Grid size={{xs:12 ,sm:6}}>
-            <Button variant="contained" fullWidth startIcon={<Google />}>
+            <Button 
+              variant="contained" 
+              fullWidth 
+              startIcon={<Google />}
+              onClick={handleGoogleLogin}  
+            >
               Google
             </Button>
           </Grid>
